@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Palette — inspirée des boîtes à baskets : fond os, encre, bleu électrique (lacet), jaune tag prix */
+  --color-bone: #F5F3EE;
+  --color-bone-dim: #EAE6DC;
+  --color-ink: #14151A;
+  --color-ink-soft: #2A2C35;
+  --color-volt: #2B5EFF;
+  --color-volt-dark: #1A3FCC;
+  --color-tag: #FFC738;
+  --color-concrete: #8A8D93;
+  --color-concrete-light: #C7C5BE;
+
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* Ligne de perforation façon étiquette de boîte à chaussures */
+.perforation {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-concrete-light) 0,
+    var(--color-concrete-light) 6px,
+    transparent 6px,
+    transparent 14px
+  );
+  height: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
