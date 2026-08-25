@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 
-export default function Hero() {
+export default function Hero({ minPrice }) {
   return (
     <section className="relative overflow-hidden bg-ink text-bone">
       <div className="max-w-7xl mx-auto px-4 md:px-8 grid lg:grid-cols-2 gap-10 items-center py-16 lg:py-24">
@@ -39,11 +39,15 @@ export default function Hero() {
             <span className="font-display text-bone/10 text-[10rem] leading-none select-none">S</span>
           </div>
 
-          {/* Hangtag rotatif */}
-          <div className="absolute -bottom-4 -left-2 sm:left-4 bg-tag text-ink rounded-2xl px-5 py-3 shadow-xl -rotate-6">
-            <p className="font-mono text-[10px] tracking-widest uppercase mb-0.5">Dès</p>
-            <p className="font-display text-2xl leading-none">25 000 FCFA</p>
-          </div>
+          {/* Hangtag rotatif — prix réel le plus bas du catalogue */}
+          {minPrice != null && (
+            <div className="absolute -bottom-4 -left-2 sm:left-4 bg-tag text-ink rounded-2xl px-5 py-3 shadow-xl -rotate-6">
+              <p className="font-mono text-[10px] tracking-widest uppercase mb-0.5">Dès</p>
+              <p className="font-display text-2xl leading-none">
+                {minPrice.toLocaleString('fr-FR')} FCFA
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

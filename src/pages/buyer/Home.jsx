@@ -93,9 +93,14 @@ export default function Home() {
     ? `BASKETS ${CATEGORY_LABELS[category]?.toUpperCase() ?? ''}`
     : 'BASKETS POUR TOI'
 
+  const minPrice = useMemo(() => {
+    if (!products.length) return null
+    return Math.min(...products.map((p) => p.price))
+  }, [products])
+
   return (
     <>
-      {!isFiltering && <Hero />}
+      {!isFiltering && <Hero minPrice={minPrice} />}
 
       <section id="catalogue" className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="pt-12">
