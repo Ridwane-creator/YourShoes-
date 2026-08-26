@@ -10,7 +10,7 @@ const productSchema = z.object({
   name: z.string().min(2, 'Nom trop court'),
   brand: z.string().min(1, 'Requis'),
   description: z.string().optional(),
-  price: z.coerce.number().min(0, 'Doit être positif ou nul'),
+  price: z.coerce.number().positive('Le prix doit être supérieur à 0'),
   category: z.enum(['homme', 'femme', 'enfant', 'unisexe']),
 })
 
@@ -21,16 +21,40 @@ const CATEGORIES = [
   { value: 'unisexe', label: 'Unisexe' },
 ]
 
-// Petit champ "à puces" réutilisable : tape une valeur, Entrée pour l'ajouter
-function ChipInput({ label, placeholder, values, onChange }) {
+const VALID_COLORS = [
+  'noir', 'blanc', 'gris', 'rouge', 'bleu', 'vert', 'jaune', 'orange',
+  'rose', 'violet', 'marron', 'beige', 'doré', 'argenté', 'turquoise',
+  'bordeaux', 'kaki', 'corail', 'saumon', 'marine', 'ivoire', 'crème',
+  'multicolore', 'camel', 'taupe',
+]
+
+const MAX_SHOE_SIZE = 46
+
+// Petit champ "à puces" réutilisable : tape une valeur, Entrée pour l'ajouter.
+// `validate` est optionnel : (value) => true | "message d'erreur"
+function ChipInput({ label, placeholder, values, onChange, validate }) {
   const [draft, setDraft] = useState('')
+  const [error, setError] = useState('')
 
   function addChip() {
     const value = draft.trim()
-    if (!value || values.includes(value)) {
+    if (!value) {
       setDraft('')
       return
     }
+    if (validate) {
+      const result = validate(value)
+      if (result !== true) {
+        setError(result)
+        setDraft('')
+        return
+      }
+    }
+    if (values.includes(value)) {
+      setDraft('')
+      return
+    }
+    setError('')
     onChange([...values, value])
     setDraft('')
   }
@@ -57,7 +81,10 @@ function ChipInput({ label, placeholder, values, onChange }) {
       </div>
       <input
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          if (error) setError('')
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault()
@@ -68,6 +95,7 @@ function ChipInput({ label, placeholder, values, onChange }) {
         placeholder={placeholder}
         className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt"
       />
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   )
 }
@@ -287,12 +315,25 @@ export default function ProductForm({ onSuccess, initialValues }) {
             placeholder="Tape une taille (42) puis Entrée"
             values={sizes}
             onChange={setSizes}
+            validate={(value) => {
+              const num = Number(value)
+              if (Number.isNaN(num)) return 'La taille doit être un nombre'
+              if (num <= 0) return 'Taille invalide'
+              if (num > MAX_SHOE_SIZE) return `La pointure ne peut pas dépasser ${MAX_SHOE_SIZE}`
+              return true
+            }}
           />
           <ChipInput
             label="Couleurs disponibles (optionnel)"
             placeholder="Tape une couleur (noir) puis Entrée"
             values={colors}
             onChange={setColors}
+            validate={(value) => {
+              if (!VALID_COLORS.includes(value.toLowerCase())) {
+                return `Couleur non reconnue. Exemples : ${VALID_COLORS.slice(0, 6).join(', ')}...`
+              }
+              return true
+            }}
           />
         </div>
 

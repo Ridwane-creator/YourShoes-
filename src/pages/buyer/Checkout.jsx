@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { Smartphone, Wallet } from 'lucide-react'
+import { Smartphone, Wallet, Lock } from 'lucide-react'
 import { useCartStore } from '../../store/cartStore'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
@@ -12,7 +12,7 @@ import { useAuth } from '../../hooks/useAuth'
 const checkoutSchema = z.object({
   buyer_name: z.string().min(2, 'Nom trop court'),
   buyer_phone: z.string().min(8, 'Numéro invalide'),
-  buyer_email: z.string().email('Email invalide').optional().or(z.literal('')),
+  buyer_email: z.string().min(1, 'Email requis').email('Email invalide'),
   delivery_address: z.string().min(5, 'Adresse trop courte'),
   delivery_city: z.string().min(2, 'Requis'),
   payment_method: z.enum(['mtn', 'moov', 'cash_on_delivery']),
@@ -31,6 +31,7 @@ export default function Checkout() {
   const navigate = useNavigate()
   const [submitting, setSubmitting] = useState(false)
   const { user, profile } = useAuth()
+  const isAuthenticated = Boolean(user)
 
   const {
     register,
@@ -50,11 +51,11 @@ export default function Checkout() {
   })
 
   useEffect(() => {
-    if (profile) {
+    if (profile || user) {
       reset((prev) => ({
         ...prev,
-        buyer_name: profile.full_name ?? prev.buyer_name,
-        buyer_phone: profile.phone ?? prev.buyer_phone,
+        buyer_name: profile?.full_name ?? prev.buyer_name,
+        buyer_phone: profile?.phone ?? prev.buyer_phone,
         buyer_email: user?.email ?? prev.buyer_email,
       }))
     }
@@ -85,7 +86,7 @@ export default function Checkout() {
           buyer_id: user?.id ?? null,
           buyer_name: values.buyer_name,
           buyer_phone: values.buyer_phone,
-          buyer_email: values.buyer_email || null,
+          buyer_email: values.buyer_email,
           delivery_address: values.delivery_address,
           delivery_city: values.delivery_city,
           payment_method: values.payment_method,
@@ -134,6 +135,16 @@ export default function Checkout() {
       <p className="font-mono text-xs tracking-widest text-volt mb-2">CHECKOUT</p>
       <h1 className="font-display text-3xl sm:text-4xl mb-8">FINALISER LA COMMANDE</h1>
 
+      {!isAuthenticated && (
+        <div className="bg-bone-dim border border-ink/10 rounded-2xl px-5 py-3.5 text-xs text-concrete mb-6">
+          Tu commandes en tant qu'invité.{' '}
+          <Link to="/login" className="text-volt font-semibold underline underline-offset-4">
+            Connecte-toi
+          </Link>{' '}
+          pour retrouver l'historique de tes commandes.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-[1fr_320px] gap-8">
         <div className="flex flex-col gap-6">
           {/* Livraison */}
@@ -141,11 +152,15 @@ export default function Checkout() {
             <p className="font-mono text-[10px] tracking-widest text-volt mb-4">LIVRAISON</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold mb-1.5">Nom complet</label>
+                <label className="flex items-center gap-1.5 text-xs font-semibold mb-1.5">
+                  Nom complet
+                  {isAuthenticated && <Lock size={11} className="text-concrete" />}
+                </label>
                 <input
                   {...register('buyer_name')}
+                  disabled={isAuthenticated}
                   placeholder="Ridwane Alao"
-                  className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt"
+                  className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt disabled:bg-bone-dim disabled:text-concrete"
                 />
                 {errors.buyer_name && (
                   <p className="text-xs text-red-600 mt-1">{errors.buyer_name.message}</p>
@@ -163,14 +178,16 @@ export default function Checkout() {
                 )}
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold mb-1.5">
-                  Email (optionnel — pour recevoir la confirmation)
+                <label className="flex items-center gap-1.5 text-xs font-semibold mb-1.5">
+                  Email
+                  {isAuthenticated && <Lock size={11} className="text-concrete" />}
                 </label>
                 <input
                   type="email"
                   {...register('buyer_email')}
+                  disabled={isAuthenticated}
                   placeholder="toi@exemple.com"
-                  className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt"
+                  className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt disabled:bg-bone-dim disabled:text-concrete"
                 />
                 {errors.buyer_email && (
                   <p className="text-xs text-red-600 mt-1">{errors.buyer_email.message}</p>

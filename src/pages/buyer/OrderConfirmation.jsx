@@ -1,5 +1,6 @@
 import { useLocation, Link, Navigate } from 'react-router-dom'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Download } from 'lucide-react'
+import { generateReceiptPdf } from '../../lib/generateReceipt'
 
 function formatOrderNumber(id) {
   return id.replace(/-/g, '').slice(0, 8).toUpperCase()
@@ -30,7 +31,7 @@ export default function OrderConfirmation() {
         contacté au {order.buyer_phone} pour la livraison.
       </p>
 
-      <div className="bg-white border border-ink/10 rounded-2xl p-6 text-left mb-8">
+      <div className="bg-white border border-ink/10 rounded-2xl p-6 text-left mb-6">
         <div className="flex flex-col gap-2 mb-4">
           {items.map((item) => (
             <div key={item.variantId} className="flex justify-between text-sm">
@@ -58,12 +59,21 @@ export default function OrderConfirmation() {
         </div>
       </div>
 
-      <Link
-        to="/"
-        className="inline-block bg-ink text-bone font-semibold text-sm px-6 py-3 rounded-full hover:bg-ink-soft transition-colors"
-      >
-        Continuer mes achats
-      </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button
+          onClick={() => generateReceiptPdf(order, items)}
+          className="flex items-center gap-2 border border-ink/15 font-semibold text-sm px-6 py-3 rounded-full hover:border-ink transition-colors"
+        >
+          <Download size={15} />
+          Télécharger le reçu
+        </button>
+        <Link
+          to="/"
+          className="inline-block bg-ink text-bone font-semibold text-sm px-6 py-3 rounded-full hover:bg-ink-soft transition-colors"
+        >
+          Continuer mes achats
+        </Link>
+      </div>
     </div>
   )
 }

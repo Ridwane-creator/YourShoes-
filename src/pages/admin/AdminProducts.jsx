@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, X, Search, Copy, ImagePlus, FileUp } from 'lucide-react'
+import { Plus, X, Search, Copy, ImagePlus, FileUp, Trash2 } from 'lucide-react'
 import ProductForm from '../../components/admin/ProductForm'
 import CsvImport from '../../components/admin/CsvImport'
 import ProductImagesModal from '../../components/admin/ProductImagesModal'
@@ -34,6 +34,27 @@ export default function AdminProducts() {
       return
     }
     toast.success(product.is_active ? 'Produit retiré du catalogue' : 'Produit republié')
+    setRefreshKey((k) => k + 1)
+  }
+
+  async function deleteProduct(product) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement "${product.name}" ? Cette action est irréversible.`
+    )
+    if (!confirmed) return
+
+    const { error: err } = await supabase.from('products').delete().eq('id', product.id)
+    if (err) {
+      if (err.code === '23503') {
+        toast.error(
+          "Impossible de supprimer : ce produit a déjà des commandes liées. Utilise \"Retirer\" pour le masquer à la place."
+        )
+      } else {
+        toast.error('Suppression impossible : ' + err.message)
+      }
+      return
+    }
+    toast.success('Produit supprimé définitivement')
     setRefreshKey((k) => k + 1)
   }
 
@@ -197,6 +218,13 @@ export default function AdminProducts() {
                           className="text-xs font-semibold text-volt hover:text-volt-dark"
                         >
                           {p.is_active ? 'Retirer' : 'Republier'}
+                        </button>
+                        <button
+                          onClick={() => deleteProduct(p)}
+                          className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 size={13} />
+                          Supprimer
                         </button>
                       </div>
                     </td>

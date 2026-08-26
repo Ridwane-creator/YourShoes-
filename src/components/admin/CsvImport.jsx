@@ -5,23 +5,51 @@ import { Upload, Download, AlertTriangle, CheckCircle2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabaseClient'
 
-const rowSchema = z.object({
-  nom: z.string().min(2, 'Nom trop court'),
-  marque: z.string().min(1, 'Marque requise'),
-  prix: z.coerce.number().positive('Prix invalide'),
-  categorie: z.enum(['homme', 'femme', 'enfant', 'unisexe'], {
-    errorMap: () => ({ message: 'Doit être homme, femme, enfant ou unisexe' }),
-  }),
-  description: z.string().optional(),
-  tailles: z.string().min(1, 'Au moins une taille requise'),
-  couleurs: z.string().optional(),
-  stock: z.coerce.number().min(0, 'Stock invalide'),
-  image_url: z
-    .string()
-    .url('URL invalide')
-    .optional()
-    .or(z.literal('')),
-})
+const VALID_COLORS = [
+  'noir', 'blanc', 'gris', 'rouge', 'bleu', 'vert', 'jaune', 'orange',
+  'rose', 'violet', 'marron', 'beige', 'doré', 'argenté', 'turquoise',
+  'bordeaux', 'kaki', 'corail', 'saumon', 'marine', 'ivoire', 'crème',
+  'multicolore', 'camel', 'taupe',
+]
+
+const MAX_SHOE_SIZE = 46
+
+const rowSchema = z
+  .object({
+    nom: z.string().min(2, 'Nom trop court'),
+    marque: z.string().min(1, 'Marque requise'),
+    prix: z.coerce.number().positive('Prix invalide'),
+    categorie: z.enum(['homme', 'femme', 'enfant', 'unisexe'], {
+      errorMap: () => ({ message: 'Doit être homme, femme, enfant ou unisexe' }),
+    }),
+    description: z.string().optional(),
+    tailles: z.string().min(1, 'Au moins une taille requise'),
+    couleurs: z.string().optional(),
+    stock: z.coerce.number().min(0, 'Stock invalide'),
+    image_url: z
+      .string()
+      .url('URL invalide')
+      .optional()
+      .or(z.literal('')),
+  })
+  .refine(
+    (row) => {
+      const sizes = row.tailles.split('|').map((s) => s.trim()).filter(Boolean)
+      return sizes.every((s) => {
+        const num = Number(s)
+        return !Number.isNaN(num) && num > 0 && num <= MAX_SHOE_SIZE
+      })
+    },
+    { message: `Chaque taille doit être un nombre valide entre 1 et ${MAX_SHOE_SIZE}`, path: ['tailles'] }
+  )
+  .refine(
+    (row) => {
+      if (!row.couleurs) return true
+      const colors = row.couleurs.split('|').map((c) => c.trim()).filter(Boolean)
+      return colors.every((c) => VALID_COLORS.includes(c.toLowerCase()))
+    },
+    { message: `Couleurs non reconnues. Utilise : ${VALID_COLORS.slice(0, 8).join(', ')}...`, path: ['couleurs'] }
+  )
 
 const TEMPLATE_CSV = `nom,marque,prix,categorie,description,tailles,couleurs,stock,image_url
 Air Max 270,Nike,45000,homme,Basket légère et confortable,40|41|42|43,noir|blanc,5,https://exemple.com/photo.jpg
