@@ -12,6 +12,7 @@ import { useAuth } from '../../hooks/useAuth'
 const checkoutSchema = z.object({
   buyer_name: z.string().min(2, 'Nom trop court'),
   buyer_phone: z.string().min(8, 'Numéro invalide'),
+  buyer_email: z.string().email('Email invalide').optional().or(z.literal('')),
   delivery_address: z.string().min(5, 'Adresse trop courte'),
   delivery_city: z.string().min(2, 'Requis'),
   payment_method: z.enum(['mtn', 'moov', 'cash_on_delivery']),
@@ -44,6 +45,7 @@ export default function Checkout() {
       payment_method: 'cash_on_delivery',
       buyer_name: profile?.full_name ?? '',
       buyer_phone: profile?.phone ?? '',
+      buyer_email: user?.email ?? '',
     },
   })
 
@@ -53,9 +55,10 @@ export default function Checkout() {
         ...prev,
         buyer_name: profile.full_name ?? prev.buyer_name,
         buyer_phone: profile.phone ?? prev.buyer_phone,
+        buyer_email: user?.email ?? prev.buyer_email,
       }))
     }
-  }, [profile, reset])
+  }, [profile, user, reset])
 
   const paymentMethod = watch('payment_method')
 
@@ -82,6 +85,7 @@ export default function Checkout() {
           buyer_id: user?.id ?? null,
           buyer_name: values.buyer_name,
           buyer_phone: values.buyer_phone,
+          buyer_email: values.buyer_email || null,
           delivery_address: values.delivery_address,
           delivery_city: values.delivery_city,
           payment_method: values.payment_method,
@@ -156,6 +160,20 @@ export default function Checkout() {
                 />
                 {errors.buyer_phone && (
                   <p className="text-xs text-red-600 mt-1">{errors.buyer_phone.message}</p>
+                )}
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold mb-1.5">
+                  Email (optionnel — pour recevoir la confirmation)
+                </label>
+                <input
+                  type="email"
+                  {...register('buyer_email')}
+                  placeholder="toi@exemple.com"
+                  className="w-full border border-ink/15 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-volt"
+                />
+                {errors.buyer_email && (
+                  <p className="text-xs text-red-600 mt-1">{errors.buyer_email.message}</p>
                 )}
               </div>
               <div className="sm:col-span-2">
