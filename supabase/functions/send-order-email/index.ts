@@ -80,14 +80,19 @@ Deno.serve(async (req) => {
     // Email au vendeur (toujours envoyé)
     const vendorHtml = `
       <h2>Nouvelle commande n° ${orderNumber}</h2>
-      <p><strong>${order.buyer_name}</strong> — ${order.buyer_phone}</p>
+      <p style="font-size:16px"><strong>Client : ${order.buyer_name}</strong></p>
+      <p>Téléphone : ${order.buyer_phone}</p>
       <p>${order.delivery_address}, ${order.delivery_city}</p>
       <p>Paiement : ${PAYMENT_LABELS[order.payment_method] ?? order.payment_method}</p>
       <ul>${itemsHtml}</ul>
       <p><strong>Total : ${total} FCFA</strong></p>
     `
     if (VENDOR_EMAIL) {
-      await sendEmail(VENDOR_EMAIL, `Nouvelle commande n° ${orderNumber} — ${total} FCFA`, vendorHtml)
+      await sendEmail(
+        VENDOR_EMAIL,
+        `Nouvelle commande de ${order.buyer_name} — n° ${orderNumber} — ${total} FCFA`,
+        vendorHtml
+      )
     }
 
     // Email de confirmation à l'acheteur, uniquement s'il a renseigné son email

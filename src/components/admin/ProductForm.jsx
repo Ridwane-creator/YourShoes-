@@ -10,7 +10,7 @@ const productSchema = z.object({
   name: z.string().min(2, 'Nom trop court'),
   brand: z.string().min(1, 'Requis'),
   description: z.string().optional(),
-  price: z.coerce.number().positive('Doit être positif'),
+  price: z.coerce.number().min(0, 'Doit être positif ou nul'),
   category: z.enum(['homme', 'femme', 'enfant', 'unisexe']),
 })
 
